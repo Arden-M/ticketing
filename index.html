@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,700,900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="fonts/icomoon/style.css">
+
+    <link rel="stylesheet" href="css/owl.carousel.min.css">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    
+    <!-- Style -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <title>Contact Form #1</title>
+  </head>
+  <body>
+  
+
+  <div class="content">
+    
+    <div class="container">
+
+      
+      <div class="row justify-content-center">
+        <div class="col-md-10">
+          
+          <div class="row align-items-center">
+            <div class="col-lg-7 mb-5 mb-lg-0">
+
+              <h3 class="mb-5">Miss IFM Tickets.</h3>
+
+              <form class="border-right pr-5 mb-5" method="post" id="ticketForm" name="contactForm">
+                <div class="row">
+                  <div class="col-md-12 form-group">
+                    <input type="text" class="form-control" name="fname" id="buyerName" placeholder="Mashi Kama">
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-12 form-group">
+                    <input type="text" class="form-control" name="fname" id="buyerPhone" placeholder="Phone Number (Vodacom, Tigo & Airtel)" oninput="detectTelecom()">
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-12 form-group">
+                    <input type="number" class="form-control" name="ticket" id="ticketQuantity" placeholder="Ticket Quantity" min="1">
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-12 form-group">
+                    <select class="form-control" name="ticket" id="ticketCategory">
+                        <option>Regular</option>
+                        <option>VIP</option>
+                        <option>Table</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row">
+
+                <!-- Authorization Text -->
+                <p class="text-sm text-gray-600 mb-4">
+                    You are making payment for Miss IFM 2025 and Talent Awards Forms
+                </p>
+
+                <button type="button" class="btn btn-primary rounded-0 py-2 px-4" id="submitTicket">
+                    Make Payment
+                    <div id="loader" class="hidden absolute inset-0 flex items-center justify-center bg-yellow-500 bg-opacity-90 rounded-md text-white font-semibold">
+                        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        <!-- Processing -->
+                    </div>
+                </button>
+
+                </div>
+              </form>
+
+              <div id="form-message-warning mt-4"></div> 
+              <div id="form-message-success">
+                Your message was sent, thank you!
+              </div>
+
+            </div>
+            <div class="col-lg-4 ml-auto">
+              <h3 class="mb-4">Know More About Miss IFM</h3>
+              <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nihil deleniti itaque similique magni. Magni, laboriosam perferendis maxime!</p>
+              <p><a href="#">More</a></p>
+            </div>
+          </div>
+        </div>  
+        </div>
+      </div>
+  </div>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery.validate.min.js"></script>
+    <script src="js/main.js"></script>
+
+    <script>
+        // Mapping of phone prefixes to telecom companies in Tanzania
+        const telecoms = {
+            'Vodacom': ['75', '76', '74'],
+            'Tigo': ['65', '67', '71'],
+            'Airtel': ['68', '78'],
+            'Halotel': ['62', '69'],
+            'Zantel': ['77']
+        };
+
+        // Function to detect the telecom based on the prefix
+        function detectTelecom() {
+            const phoneInput = document.getElementById('buyerPhone').value;
+            const telecomLogo = document.getElementById('telecomLogo');
+            let detectedTelecom = '';
+
+            // Check the prefix and determine the telecom company
+            for (const [telecom, prefixes] of Object.entries(telecoms)) {
+                if (prefixes.some(prefix => {
+                    return phoneInput.replace(/\s+/, '').startsWith(`+255${prefix}`) || phoneInput.startsWith(`255${prefix}`) || phoneInput.startsWith(`0${prefix}`);
+                })) {
+                    detectedTelecom = telecom;
+                    break;
+                }
+            }
+            
+            // Set the telecom logo based on the detected telecom
+            if (detectedTelecom) {
+                telecomLogo.innerHTML = `<img src="logos/${detectedTelecom.toLowerCase()}.png" alt="${detectedTelecom} Logo" class="w-6 h-6">`;
+            } else {
+                telecomLogo.innerHTML = ''; // Clear logo if no match
+            }
+        }
+
+        // Utility function to format phone number to 255 format
+        function formatPhoneNumber(phone) {
+            phone = phone.replace(/\D/g, ''); // Remove all non-numeric characters
+
+            // Convert phone number starting with +255 or 0 to 255 format
+            if (phone.startsWith('255')) {
+                return phone;
+            } else if (phone.startsWith('0')) {
+                return '255' + phone.slice(1);
+            } else if (phone.startsWith('+255')) {
+                return phone.replace('+', '');
+            }
+            
+            return phone; // Return unchanged if already in correct format
+        }
+
+    </script>
+
+    <!-- Firebase SDK (Version 9 Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9w3CoyiUYWIIZViqPM-fwcycz4y4isnY",
+            authDomain: "arusoforms.firebaseapp.com",
+            databaseURL: "https://arusoforms-default-rtdb.firebaseio.com",
+            projectId: "arusoforms",
+            storageBucket: "arusoforms.firebasestorage.app",
+            messagingSenderId: "610380430512",
+            appId: "1:610380430512:web:0a633bd1268dee44b68f75"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentTickets = []
+
+        // Function to listen for updates in the tickets collection
+        function listenForTicketUpdates() {
+            const ticketsCollection = collection(db, "tickets");
+
+            onSnapshot(ticketsCollection, (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "modified" && currentTickets.includes(change.doc.id)) {
+                        const ticketData = change.doc.data();
+                        if (ticketData.status === 'SUCCESSFUL') {
+                            alert(`Thank you, ${ticketData.name}! You have successfully purchased ${ticketData.tickets} ${ticketData.category} ticket(s).`);
+                        } 
+                    }
+                });
+            });
+        }
+
+        // Call the function to start listening
+        listenForTicketUpdates();
+
+        const AMOUNTS = {
+            Regular: 10000,
+            VIP: 30000,
+            Table: 300000
+        };
+
+        async function submitForm() {
+            const loader = document.getElementById('loader');
+            const name = document.getElementById('buyerName').value;
+            const phone = formatPhoneNumber(document.getElementById('buyerPhone').value); // Format phone number
+            const tickets = document.getElementById('ticketQuantity').value;
+            const category = document.getElementById('ticketCategory').value;
+
+            if (name && phone && tickets && category) {
+                loader.classList.remove('hidden'); // Show loader
+                loader.style.width = `${document.getElementById('submitTicket').clientWidth}px`; // Match button width
+                loader.style.height = `${document.getElementById('submitTicket').clientHeight}px`; // Match button height
+
+                try {
+                    const docRef = await addDoc(collection(db, "tickets"), {
+                        name,
+                        phone,
+                        tickets: Number(tickets),
+                        category,
+                        status: 'pending',
+                        timestamp: serverTimestamp()
+                    });
+
+                    currentTickets.push(docRef.id);
+
+                    await fetch('https://api-xhjdzdiswq-uc.a.run.app/payment', {
+
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            reference: docRef.id,
+                            phoneNumber: phone,
+                            amount: AMOUNTS[category] * Number(tickets),
+                            description: `Ticket for ${name}`
+                        })
+                    });
+
+                    alert(`We have received your purchase request. Prepare your phone to receive a USSD prompt`);
+                    loader.classList.add('hidden'); // Hide loader immediately after the alert
+                    document.getElementById('ticketForm').reset();
+                } catch (error) {
+                    console.error("Error adding document: ", error);
+                    alert("Failed to submit ticket. Please try again.");
+                }
+            } else {
+                alert('Please fill out all fields.');
+            }
+        }
+
+        document.getElementById('submitTicket').addEventListener('click', submitForm);
+    </script>
+
+  </body>
+</html>

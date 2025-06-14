@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inventory Dashboard + Form</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+
+  <div class="w-full max-w-5xl space-y-10">
+
+    <!-- ───────────  Analytics  ─────────── -->
+    <section>
+      <h2 class="text-3xl font-semibold mb-6">Analytics</h2>
+
+      <div id="cards" class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <!-- Card template – duplicated below so Tailwind can tree-shake… -->
+      </div>
+    </section>
+  </div>
+
+  <!-- ───────────  Firebase (v9 modular)  ─────────── -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp,
+      onSnapshot, query
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    /* 1️⃣  YOUR PROJECT CONFIG  */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBlLrkhboYErVLTlqtd2bZ10fsY1hLSHuY",
+      authDomain: "aruso-ticketing.firebaseapp.com",
+      projectId: "aruso-ticketing",
+      storageBucket: "aruso-ticketing.firebasestorage.app",
+      messagingSenderId: "219820341641",
+      appId: "1:219820341641:web:b2f4963f2ac0877eddc958"
+    };
+
+    /* 2️⃣  INIT  */
+    const app     = initializeApp(firebaseConfig);
+    const db      = getFirestore(app);
+    const itemsCol = collection(db, "logs");
+
+    /* 3️⃣  REAL-TIME ANALYTICS  */
+    const cardsEl = document.getElementById("cards");
+
+    // helper: create a card block
+    const card = (title, main, sub, change, changeColor) => `
+      <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <h3 class="text-sm font-medium text-gray-500 mb-2">${title}</h3>
+
+        <div class="flex items-baseline space-x-2 mb-4">
+          <span class="text-2xl sm:text-3xl font-semibold text-gray-800">${main}</span>
+        </div>
+
+        <div class="flex items-center space-x-2 mb-2">
+          <span class="text-${changeColor}-600 text-xs font-medium">${change > 0 ? '▲' : change < 0 ? '▼' : ''} ${Math.abs(change).toFixed(1)}%</span>
+          <span class="text-xs text-gray-400">vs. yesterday*</span>
+        </div>
+
+        <p class="text-xs text-gray-500">${sub}</p>
+      </div>`;
+
+    // naive month-over-month placeholder
+    const randomChange = () => (Math.random() * 10 - 5); // –5 % → +5 %
+
+    onSnapshot(query(itemsCol), (snap) => {
+      let totalAmt = 0;
+      let totalItems = snap.size;
+      let totalScanned = 0;
+
+      snap.forEach(doc => {
+        const { amount = 0, category = "" } = doc.data();
+        totalAmt += Number(amount) || 0;
+        if (category === "scanned") totalScanned += 1;
+      });
+
+      /*  Re-render cards  */
+      cardsEl.innerHTML = `
+        ${card(
+          "Total Sales",
+          "TZS" + totalAmt.toLocaleString(),
+          `${totalItems} transactions`,
+          randomChange(),
+          "green"
+        )}
+
+        ${card(
+          "Tickets Sold",
+          totalItems.toLocaleString(),
+          `${totalItems} tickets sold`,
+          randomChange(),
+          "green"
+        )}
+
+        ${card(
+          "Scanned Tickets",
+          totalScanned.toLocaleString(),
+          `${totalScanned} scanned`,
+          randomChange(),
+          "red"
+        )}
+      `;
+    });
+
+    /* 4️⃣  FORM HANDLER  */
+    const form  = document.getElementById("itemForm");
+    const msgEl = document.getElementById("msg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msgEl.textContent = "";
+
+      const name     = form.querySelector("#name").value.trim();
+      const amount   = Number(form.querySelector("#amount").value);
+      const category = form.category.value;   // radio
+
+      try {
+        await addDoc(itemsCol, {
+          name, amount, category,
+          createdAt: serverTimestamp()
+        });
+
+        msgEl.textContent = "✅ Saved!";
+        msgEl.className   = "text-green-600 text-sm text-center mt-4";
+        form.reset();
+      } catch (err) {
+        console.error(err);
+        msgEl.textContent = "❌ Error saving item.";
+        msgEl.className   = "text-red-600 text-sm text-center mt-4";
+      }
+    });
+  </script>
+</body>
+</html>
